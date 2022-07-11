@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ns1:address xmlns:ns1="http://mynamespace.com/" type="homeAddress">
+ <ns1:street>
+  <ns1:name>Italia</ns1:name>
+  <ns1:number>2164</ns1:number>
+ </ns1:street>
+</ns1:address>

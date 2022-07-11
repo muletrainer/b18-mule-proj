@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="2d41bf3c-4861-43ca-be3c-bff78db5dec5" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="my_flow" doc:id="67608507-6aff-4eea-985e-309e18a11022" >
+		<ee:transform doc:name="Transform Message" doc:id="8f98ea73-8a76-4a0e-bfa0-b56ba4e785eb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+wish : "Hello, " ++ payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="json-to-xml" doc:id="29f7d8ce-b323-4e6f-8fa0-4ba070245dab" >
+		<ee:transform doc:name="Transform Message" doc:id="6c5fda94-4164-4f46-9b71-74086e870198" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml skipNullOn="everywhere"
+ns ns0 http://mynamespace.com/
+---
+{
+	ns0#address @("type": payload.address.addType): {
+		ns0#street: {
+			ns0#name: payload.address.street.name,
+			ns0#number: payload.address.street.number,
+            ns0#test : null
+		}
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="xml-to-json" doc:id="c7ccab5d-c264-40eb-921e-afec1d0ec177" >
+		<ee:transform doc:name="Transform Message" doc:id="96ba800b-949f-48e4-83ac-5757e05b81ac" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+ns ns0 http://mynamespace.com/
+---
+{
+	address: {
+		addType: payload.ns0#address.@"type",
+		street: {
+			name: payload.ns0#address.ns0#street.ns0#name,
+			number: payload.ns0#address.ns0#street.ns0#number
+		}
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="04697557-bcf0-48b1-a2fe-d482d0d2aba2" message="#[payload]"/>
+	</flow>
+	<flow name="my-first-flow" doc:id="e1cb3b68-abc9-4088-a6fa-f416b2b4cd1c" >
+		<http:listener doc:name="Listener" doc:id="eeafd655-a537-4085-a127-1e30976b9a92" config-ref="HTTP_Listener_config" path="/hai"/>
+		<logger level="ERROR" doc:name="Logger" doc:id="cfb5ca83-a980-4011-a112-5d8e4e1fe4f8" message="-- request recevied --"/>
+		<ee:transform doc:name="Transform Message" doc:id="77375670-eec5-4adc-976d-0f58aab326b1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+lookup("my_flow", " Kishore")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="598e042b-cef4-48eb-8cb5-3b45a320a95d" message="-- request processed --"/>
+	</flow>
+</mule>
